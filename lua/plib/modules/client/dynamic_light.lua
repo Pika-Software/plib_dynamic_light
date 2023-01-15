@@ -1,3 +1,5 @@
+local math = math
+
 local meta = {}
 meta.__index = meta
 
@@ -13,8 +15,11 @@ function meta:LightIndex()
     return self.__number or -1
 end
 
-function meta:__tostring()
-    return string.format( 'Dynamic Light [%s]', self:LightIndex() )
+do
+    local string_format = string.format
+    function meta:__tostring()
+        return string_format( 'Dynamic Light [%s]', self:LightIndex() )
+    end
 end
 
 function meta:Remove()
@@ -90,12 +95,18 @@ function meta:SetDeathTime( int )
 end
 
 -- LifeTime
-function meta:GetLifeTime()
-    return CurTime() - self:GetDeathTime()
-end
+do
 
-function meta:SetLifeTime( int )
-    self:SetDeathTime( CurTime() + int )
+    local CurTime = CurTime
+
+    function meta:GetLifeTime()
+        return CurTime() - self:GetDeathTime()
+    end
+
+    function meta:SetLifeTime( int )
+        self:SetDeathTime( CurTime() + int )
+    end
+
 end
 
 -- Brightness
@@ -182,19 +193,28 @@ function meta:SetMinLight( int )
     end
 end
 
-function CreateDynamicLight( index )
-    local light = DynamicLight( index )
-    light.decay = 0
+do
 
-    local new = setmetatable( {
-        ['__number'] = index,
-        ['__color'] = Color( 255, 255, 255 ),
-        ['__light'] = light
-    }, meta )
+    local setmetatable = setmetatable
+    local DynamicLight = DynamicLight
+    local Vector = Vector
+    local Color = Color
 
-    new:SetLifeTime( math.huge )
-    new:SetBrightness( 2 )
-    new:SetPos( Vector() )
+    function CreateDynamicLight( index )
+        local light = DynamicLight( index )
+        light.decay = 0
 
-    return new
+        local new = setmetatable( {
+            ['__number'] = index,
+            ['__color'] = Color( 255, 255, 255 ),
+            ['__light'] = light
+        }, meta )
+
+        new:SetLifeTime( math.huge )
+        new:SetBrightness( 2 )
+        new:SetPos( Vector() )
+
+        return new
+    end
+
 end
