@@ -1,3 +1,4 @@
+local ArgAssert = ArgAssert
 local math = math
 
 local meta = {}
@@ -35,6 +36,7 @@ function meta:GetPos()
 end
 
 function meta:SetPos( vector )
+    ArgAssert( vector, 1, 'vector' )
     self.__pos = vector
 
     local light = self:GetLight()
@@ -49,6 +51,10 @@ function meta:GetColor()
 end
 
 function meta:SetColorUnpacked( r, g, b, a )
+    ArgAssert( r, 1, 'number' )
+    ArgAssert( g, 1, 'number' )
+    ArgAssert( b, 1, 'number' )
+
     local color = self:GetColor()
     color.r = r or 0
     color.g = g or 0
@@ -65,6 +71,7 @@ function meta:SetColorUnpacked( r, g, b, a )
 end
 
 function meta:SetColor( color )
+    ArgAssert( color, 1, 'table' )
     self:SetColorUnpacked( color.r, color.g, color.b, color.a )
 end
 
@@ -74,6 +81,7 @@ function meta:GetAlpha()
 end
 
 function meta:SetAlpha( int )
+    ArgAssert( int, 1, 'number' )
     local color = self:GetColor()
     color.a = int
 
@@ -86,6 +94,7 @@ function meta:GetDeathTime()
 end
 
 function meta:SetDeathTime( int )
+    ArgAssert( int, 1, 'number' )
     self.__dietime = int
 
     local light = self:GetLight()
@@ -104,6 +113,7 @@ do
     end
 
     function meta:SetLifeTime( int )
+        ArgAssert( int, 1, 'number' )
         self:SetDeathTime( CurTime() + int )
     end
 
@@ -115,6 +125,7 @@ function meta:GetBrightness()
 end
 
 function meta:SetBrightness( int )
+    ArgAssert( int, 1, 'number' )
     self.__brightness = math.max( 0, int )
 
     local light = self:GetLight()
@@ -129,6 +140,7 @@ function meta:GetSize()
 end
 
 function meta:SetSize( int )
+    ArgAssert( int, 1, 'number' )
     self.__size = int
 
     local light = self:GetLight()
@@ -143,6 +155,7 @@ function meta:GetStyle()
 end
 
 function meta:SetStyle( int )
+    ArgAssert( int, 1, 'number' )
     self.__style = int
 
     local light = self:GetLight()
@@ -185,6 +198,7 @@ function meta:GetMinLight()
 end
 
 function meta:SetMinLight( int )
+    ArgAssert( int, 1, 'number' )
     self.__minlight = int
 
     local light = self:GetLight()
@@ -201,6 +215,8 @@ do
     local Color = Color
 
     function CreateDynamicLight( index )
+        ArgAssert( index, 1, 'number' )
+
         local light = DynamicLight( index )
         light.decay = 0
 
