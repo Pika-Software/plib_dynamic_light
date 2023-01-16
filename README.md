@@ -1,5 +1,5 @@
-# plib_dynamic_light
+# Dynamic Light
 Normal meta-object for dynamic light.
 
 ## Requires
-- [gmod_plib](https://github.com/Pika-Software/gmod_plib)
+- [PLib](https://github.com/Pika-Software/gmod_plib)
