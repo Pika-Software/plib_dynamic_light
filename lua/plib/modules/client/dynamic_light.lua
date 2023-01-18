@@ -9,11 +9,15 @@ function meta:GetLight()
 end
 
 function meta:IsValid()
-    return self:GetLight() ~= nil
+    if (self:GetLight() == nil) then
+        return false
+    end
+
+    return self:GetLifeTime() > CurTime()
 end
 
 function meta:LightIndex()
-    return self.__number or -1
+    return self.__number
 end
 
 do
@@ -28,6 +32,8 @@ function meta:Remove()
     if (light) then
         light.dietime = 0
     end
+
+    hook.Run( 'DLightRemoved', self )
 end
 
 -- Position
@@ -89,7 +95,7 @@ function meta:SetAlpha( int )
 end
 
 -- DeathTime
-function meta:GetDeathTime()
+function meta:GetDieTime()
     return self.__dietime or 0
 end
 
@@ -99,7 +105,7 @@ function meta:SetDeathTime( int )
 
     local light = self:GetLight()
     if (light) then
-        light.dietime = self:GetDeathTime()
+        light.dietime = self:GetDieTime()
     end
 end
 
@@ -109,7 +115,7 @@ do
     local CurTime = CurTime
 
     function meta:GetLifeTime()
-        return CurTime() - self:GetDeathTime()
+        return CurTime() - self:GetDieTime()
     end
 
     function meta:SetLifeTime( int )
@@ -214,8 +220,20 @@ do
     local Vector = Vector
     local Color = Color
 
-    function CreateDynamicLight( index )
-        ArgAssert( index, 1, 'number' )
+    local listOfLights = {}
+    hook.Add('PreCleanupMap', 'PLib - Dynamic Light', function()
+        for index, light in pairs( listOfLights ) do
+            listOfLights[ index ] = nil
+            light:Remove()
+        end
+    end)
+
+    hook.Add('DLightRemoved', 'PLib - Dynamic Light', function( light )
+        table.remove( listOfLights, light:LightIndex() )
+    end)
+
+    function CreateDynamicLight()
+        local index = #listOfLights + 1
 
         local light = DynamicLight( index )
         light.decay = 0
@@ -226,10 +244,10 @@ do
             ['__light'] = light
         }, meta )
 
+        table.insert( listOfLights, index, new )
         new:SetLifeTime( math.huge )
         new:SetBrightness( 2 )
         new:SetPos( Vector() )
-
         return new
     end
 
