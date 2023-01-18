@@ -3,6 +3,7 @@ local math = math
 
 local meta = {}
 meta.__index = meta
+debug.getregistry().DynamicLightLuaObject = meta
 
 function meta:GetLight()
     return self.__light
