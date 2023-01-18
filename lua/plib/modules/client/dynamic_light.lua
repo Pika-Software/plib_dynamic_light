@@ -9,11 +9,7 @@ function meta:GetLight()
 end
 
 function meta:IsValid()
-    if (self:GetLight() == nil) then
-        return false
-    end
-
-    return self:GetLifeTime() > CurTime()
+    return self:GetDieTime() > CurTime() and self:GetLight() ~= nil
 end
 
 function meta:LightIndex()
@@ -28,11 +24,7 @@ do
 end
 
 function meta:Remove()
-    local light = self:GetLight()
-    if (light) then
-        light.dietime = 0
-    end
-
+    self:SetDeathTime( 0 )
     hook.Run( 'DLightRemoved', self )
 end
 
@@ -215,40 +207,52 @@ end
 
 do
 
-    local setmetatable = setmetatable
-    local DynamicLight = DynamicLight
-    local Vector = Vector
-    local Color = Color
-
     local listOfLights = {}
-    hook.Add('PreCleanupMap', 'PLib - Dynamic Light', function()
-        for index, light in pairs( listOfLights ) do
-            listOfLights[ index ] = nil
-            light:Remove()
+
+    do
+        local pairs = pairs
+        hook.Add('PreCleanupMap', 'PLib - Dynamic Light', function()
+            for index, light in pairs( listOfLights ) do
+                listOfLights[ index ] = nil
+                light:Remove()
+            end
+        end)
+    end
+
+    do
+        local table_remove = table.remove
+        hook.Add('DLightRemoved', 'PLib - Dynamic Light', function( light )
+            table_remove( listOfLights, light:LightIndex() )
+        end)
+    end
+
+    do
+
+        local table_insert = table.insert
+        local setmetatable = setmetatable
+        local DynamicLight = DynamicLight
+        local Vector = Vector
+        local Color = Color
+
+        function CreateDynamicLight()
+            local index = #listOfLights + 1
+
+            local light = DynamicLight( index )
+            light.decay = 0
+
+            local new = setmetatable( {
+                ['__number'] = index,
+                ['__color'] = Color( 255, 255, 255 ),
+                ['__light'] = light
+            }, meta )
+
+            table_insert( listOfLights, index, new )
+            new:SetLifeTime( math.huge )
+            new:SetBrightness( 2 )
+            new:SetPos( Vector() )
+            return new
         end
-    end)
 
-    hook.Add('DLightRemoved', 'PLib - Dynamic Light', function( light )
-        table.remove( listOfLights, light:LightIndex() )
-    end)
-
-    function CreateDynamicLight()
-        local index = #listOfLights + 1
-
-        local light = DynamicLight( index )
-        light.decay = 0
-
-        local new = setmetatable( {
-            ['__number'] = index,
-            ['__color'] = Color( 255, 255, 255 ),
-            ['__light'] = light
-        }, meta )
-
-        table.insert( listOfLights, index, new )
-        new:SetLifeTime( math.huge )
-        new:SetBrightness( 2 )
-        new:SetPos( Vector() )
-        return new
     end
 
 end
