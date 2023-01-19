@@ -215,13 +215,17 @@ do
 
         local pairs = pairs
 
-        hook.Add('PreCleanupMap', 'PLib - Dynamic Light', function()
-            for index, light in pairs( listOfLights ) do
-                listOfLights[ index ] = nil
-                light:Remove()
-            end
-        end)
-
+        do
+            local IsValid = IsValid
+            hook.Add('PreCleanupMap', 'PLib - Dynamic Light', function()
+                for index, light in pairs( listOfLights ) do
+                    listOfLights[ index ] = nil
+                    if IsValid( light ) then
+                        light:Remove()
+                    end
+                end
+            end)
+        end
 
         function game.GetDynamicLightCount()
             local count = 0
