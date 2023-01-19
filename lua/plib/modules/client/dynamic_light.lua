@@ -1,5 +1,6 @@
 local ArgAssert = ArgAssert
 local math = math
+local hook = hook
 
 local meta = {}
 meta.__index = meta
@@ -135,7 +136,7 @@ end
 
 -- Light Size
 function meta:GetSize()
-    return self.__size or 0
+    return self.__size or 32
 end
 
 function meta:SetSize( int )
@@ -211,35 +212,56 @@ do
     local listOfLights = {}
 
     do
+
         local pairs = pairs
+
         hook.Add('PreCleanupMap', 'PLib - Dynamic Light', function()
             for index, light in pairs( listOfLights ) do
                 listOfLights[ index ] = nil
                 light:Remove()
             end
         end)
+
+
+        function game.GetDynamicLightCount()
+            local count = 0
+            for _, __ in pairs( listOfLights ) do
+                count = count + 1
+            end
+
+            return count
+        end
+
     end
 
     do
-        local table_remove = table.remove
-        hook.Add('DLightRemoved', 'PLib - Dynamic Light', function( light )
-            table_remove( listOfLights, light:LightIndex() )
-        end)
+        local NULL = NULL
+        function game.GetDynamicLight( index )
+            return listOfLights[ index ] or NULL
+        end
     end
+
+    hook.Add('DLightRemoved', 'PLib - Dynamic Light', function( light )
+        listOfLights[ light:LightIndex() ] = nil
+    end)
 
     do
 
-        local table_insert = table.insert
         local setmetatable = setmetatable
         local DynamicLight = DynamicLight
         local Vector = Vector
         local Color = Color
 
         function CreateDynamicLight()
-            local index = #listOfLights + 1
+            local index = 1
+            while ( listOfLights[ index ] ~= nil ) do
+                index = index + 1
+            end
 
             local light = DynamicLight( index )
+            light.brightness = 1
             light.decay = 0
+            light.size = 32
 
             local new = setmetatable( {
                 ['__number'] = index,
@@ -247,10 +269,13 @@ do
                 ['__light'] = light
             }, meta )
 
-            table_insert( listOfLights, index, new )
+            listOfLights[ index ] = light
             new:SetLifeTime( math.huge )
             new:SetBrightness( 2 )
             new:SetPos( Vector() )
+
+            hook.Run( 'DLightCreated', new )
+
             return new
         end
 
